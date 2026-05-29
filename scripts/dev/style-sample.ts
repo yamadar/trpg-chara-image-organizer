@@ -18,11 +18,7 @@ const force = process.argv.includes('--force')
 // 出力名 → 本番Combo。buildPrompt がグリムダーク＋白背景＋（モンスターは凶暴化）を反映する。
 const targets: Array<{ name: string; combo: Combo }> = [
   {
-    name: 'oilgrim__dragon',
-    combo: { type: 'monster', id: 'monster-dragon-1', monster: 'dragon', variant: 1 },
-  },
-  {
-    name: 'oilgrim__dragonborn',
+    name: 'oilgrim__dragonborn2',
     combo: { type: 'character', id: 'char-dragonborn-male-young-fighter', race: 'dragonborn', gender: 'male', age: 'young', profession: 'fighter' },
   },
 ]
