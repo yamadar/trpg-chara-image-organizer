@@ -1,0 +1,38 @@
+{
+  "name": "trpg-chara-image-organizer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TRPGで汎用利用できるキャラクター/モンスター画像を生成AIで作り、属性付きJSONとして配信する静的サイト",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "gen": "tsx scripts/generate.ts",
+    "gen:dry": "tsx scripts/generate.ts --dry-run --all",
+    "gen:pilot": "tsx scripts/generate.ts --pilot",
+    "gen:all": "tsx scripts/generate.ts --all",
+    "manifest": "tsx scripts/generate.ts --manifest-only",
+    "dev:placeholder": "tsx scripts/dev/placeholder.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@google/genai": "^2.7.0",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "dotenv": "^17.4.2",
+    "p-limit": "^7.3.0",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
+  }
+}
