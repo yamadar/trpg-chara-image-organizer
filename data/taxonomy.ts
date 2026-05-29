@@ -20,7 +20,7 @@ export const races: Attribute[] = [
   { key: 'gnome', labelJa: 'ノーム', prompt: 'gnome, very small with bright curious eyes and a large nose' },
   { key: 'half-orc', labelJa: 'ハーフオーク', prompt: 'half-orc with greenish-gray skin, small protruding tusks, and a strong heavy jaw' },
   { key: 'tiefling', labelJa: 'ティーフリング', prompt: 'tiefling with curved horns, reddish skin, a long tail, and faintly glowing eyes' },
-  { key: 'dragonborn', labelJa: 'ドラゴンボーン', prompt: 'dragonborn with a scaled draconic head, reptilian eyes, and no hair' },
+  { key: 'dragonborn', labelJa: 'ドラゴンボーン', prompt: 'dragonborn with the head of a dragon and prominent curved horns, scaled draconic features, reptilian slit eyes, and no hair' },
   { key: 'lizardfolk', labelJa: 'リザードフォーク', prompt: 'lizardfolk with green scaled reptilian skin, slit eyes, and a fanged snout' },
   { key: 'beastfolk', labelJa: '獣人', prompt: 'beastfolk with feline ears, a fur-covered face, slit-pupil eyes, and whiskers' },
 ]

@@ -11,6 +11,8 @@ import {
   STYLE_PREAMBLE,
   CHARACTER_FRAMING,
   MONSTER_FRAMING,
+  MONSTER_MENACE,
+  BACKGROUND,
   CONSTRAINTS,
   MONSTER_VARIANT_HINTS,
 } from '../data/style'
@@ -67,6 +69,7 @@ export function buildCharacterPrompt(c: CharacterCombo): string {
     STYLE_PREAMBLE,
     `Subject: a ${age.prompt} ${gender.prompt} ${race.prompt}. They are a ${prof.prompt}. ${appearance}`,
     CHARACTER_FRAMING,
+    BACKGROUND,
     CONSTRAINTS,
   ].join(' ')
 }
@@ -75,7 +78,13 @@ export function buildMonsterPrompt(m: MonsterCombo): string {
   const mon = monsterMap.get(m.monster)
   if (!mon) throw new Error(`unknown monster key in combo ${m.id}`)
   const hint = MONSTER_VARIANT_HINTS[(m.variant - 1) % MONSTER_VARIANT_HINTS.length]
-  return [STYLE_PREAMBLE, `Subject: ${mon.prompt}. ${hint}`, MONSTER_FRAMING, CONSTRAINTS].join(' ')
+  return [
+    STYLE_PREAMBLE,
+    `Subject: ${mon.prompt}. ${hint} ${MONSTER_MENACE}`,
+    MONSTER_FRAMING,
+    BACKGROUND,
+    CONSTRAINTS,
+  ].join(' ')
 }
 
 export function buildPrompt(combo: Combo): string {
