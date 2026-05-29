@@ -18,12 +18,12 @@ const force = process.argv.includes('--force')
 // 出力名 → 本番Combo。buildPrompt がグリムダーク＋白背景＋（モンスターは凶暴化）を反映する。
 const targets: Array<{ name: string; combo: Combo }> = [
   {
-    name: 'grimdark-v2__human',
-    combo: { type: 'character', id: 'char-human-male-young-fighter', race: 'human', gender: 'male', age: 'young', profession: 'fighter' },
+    name: 'oilgrim__dragon',
+    combo: { type: 'monster', id: 'monster-dragon-1', monster: 'dragon', variant: 1 },
   },
   {
-    name: 'grimdark-v2__goblin',
-    combo: { type: 'monster', id: 'monster-goblin-1', monster: 'goblin', variant: 1 },
+    name: 'oilgrim__dragonborn',
+    combo: { type: 'character', id: 'char-dragonborn-male-young-fighter', race: 'dragonborn', gender: 'male', age: 'young', profession: 'fighter' },
   },
 ]
 

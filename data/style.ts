@@ -3,13 +3,14 @@
 // 商標ブランド名は使わず一般語で表現する。
 // ※ 将来、画風バリエーションを増やす場合はこの STYLE_PREAMBLE を差し替える運用。
 
-export const STYLE_ID = 'grimdark'
+export const STYLE_ID = 'oil-grimdark'
 
-/** 全生成に共通して前置きする絵柄の説明。 */
+/** 全生成に共通して前置きする絵柄の説明。oil(クラシック油彩) と grimdark(ダーク写実) の中間。 */
 export const STYLE_PREAMBLE =
-  'Gritty, hyper-detailed dark fantasy realism. Weathered, grimy and battle-worn surfaces with scars, ' +
-  'dirt and worn materials, a desaturated muted color palette, harsh dramatic directional lighting, ' +
-  'fine intricate detail, and a somber, serious atmosphere.'
+  'A richly detailed oil painting in a classical realism style (old-master portraiture) with fine, visible ' +
+  'brushwork, deep glazed colors and a subtle canvas texture, rendered with a gritty dark-fantasy mood: ' +
+  'weathered grimy textures, scars and worn battered materials, a desaturated muted palette, ' +
+  'harsh dramatic chiaroscuro lighting, fine intricate detail, and a somber, atmospheric tone.'
 
 /** キャラクターの構図（バストアップ・中央・正方形）。 */
 export const CHARACTER_FRAMING =
