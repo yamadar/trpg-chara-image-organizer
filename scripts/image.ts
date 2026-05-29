@@ -12,12 +12,16 @@ export const WEBP_QUALITY = 90
 
 /**
  * 生バイト列 or ファイルパスを受け取り、最終 webp 用の sharp パイプラインを返す。
- * 呼び出し側で `.toFile(out)` する。
+ * size を変えれば原寸(1024)/縮小(512)の両方に使える。呼び出し側で `.toFile(out)` する。
  */
-export function finishImage(input: Buffer | string) {
+export function finishImage(
+  input: Buffer | string,
+  size: number = IMAGE_SIZE,
+  quality: number = WEBP_QUALITY,
+) {
   return sharp(input)
-    .resize(IMAGE_SIZE, IMAGE_SIZE, { fit: 'cover', position: 'centre' })
+    .resize(size, size, { fit: 'cover', position: 'centre' })
     .modulate({ saturation: SATURATION })
     .linear(CONTRAST, 128 * (1 - CONTRAST))
-    .webp({ quality: WEBP_QUALITY })
+    .webp({ quality })
 }

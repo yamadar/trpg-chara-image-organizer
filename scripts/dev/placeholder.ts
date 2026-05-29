@@ -5,7 +5,7 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
 import { characterCombos, monsterCombos } from '../combos'
-import { CHAR_DIR, MONSTER_DIR, IMAGES_DIR, IMAGE_SIZE, charFile, monsterFile } from '../config'
+import { absSizeTypeDir, absFile, IMAGE_SIZE, type EntityType } from '../config'
 import type { Combo } from '../types'
 
 function hash(s: string): number {
@@ -39,12 +39,13 @@ function svgFor(combo: Combo): string {
 }
 
 async function main() {
-  await mkdir(CHAR_DIR, { recursive: true })
-  await mkdir(MONSTER_DIR, { recursive: true })
+  for (const t of ['characters', 'monsters'] as EntityType[]) {
+    await mkdir(absSizeTypeDir('512', t), { recursive: true })
+  }
   const combos: Combo[] = [...characterCombos(), ...monsterCombos()]
   let n = 0
   for (const c of combos) {
-    const out = path.join(IMAGES_DIR, c.type === 'character' ? charFile(c.id) : monsterFile(c.id))
+    const out = absFile('512', c.type === 'character' ? 'characters' : 'monsters', c.id)
     await sharp(Buffer.from(svgFor(c))).resize(IMAGE_SIZE, IMAGE_SIZE).webp({ quality: 80 }).toFile(out)
     n++
   }

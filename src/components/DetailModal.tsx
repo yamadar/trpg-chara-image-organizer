@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import type { Item } from '../types'
-import { imageSrc } from '../lib/manifest-utils'
+import { imageSrc, originalSrc } from '../lib/manifest-utils'
 import CopyButton from './CopyButton'
 
 interface Props {
   item: Item
+  baseUrl: string
   onClose: () => void
 }
 
@@ -17,7 +18,7 @@ function Row({ label, value }: { label: string; value: string }) {
   )
 }
 
-export default function DetailModal({ item, onClose }: Props) {
+export default function DetailModal({ item, baseUrl, onClose }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -26,7 +27,7 @@ export default function DetailModal({ item, onClose }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const rows =
+  const rows: Array<[string, string]> =
     item.type === 'character'
       ? [
           ['種族', item.raceLabel],
@@ -38,6 +39,10 @@ export default function DetailModal({ item, onClose }: Props) {
           ['種別', item.monsterLabel],
           ['バリアント', `#${item.variant}`],
         ]
+
+  const url512 = baseUrl + item.file
+  const urlOriginal = item.original ? baseUrl + item.original : null
+  const localOriginal = originalSrc(item)
 
   return (
     <div
@@ -80,27 +85,20 @@ export default function DetailModal({ item, onClose }: Props) {
             {rows.map(([label, value]) => (
               <Row key={label} label={label} value={value} />
             ))}
-            <Row label="サイズ" value={`${item.width}×${item.height}px`} />
+            {item.has_original && <Row label="サイズ" value="原寸 / 512px の2種" />}
           </div>
 
           <div className="mt-1 flex flex-wrap gap-2">
-            <CopyButton text={item.url} label="画像URLをコピー" />
-            <CopyButton text={JSON.stringify(item, null, 2)} label="JSONをコピー" />
+            <CopyButton text={url512} label="512 URLをコピー" />
+            {urlOriginal && <CopyButton text={urlOriginal} label="原寸URLをコピー" />}
             <a
-              href={imageSrc(item)}
+              href={localOriginal ?? imageSrc(item)}
               download={`${item.id}.webp`}
               className="rounded-md bg-slate-700 px-3 py-1.5 text-sm font-medium text-slate-100 transition hover:bg-slate-600"
             >
-              ダウンロード
+              {localOriginal ? '原寸ダウンロード' : 'ダウンロード'}
             </a>
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
-            >
-              公開URLを開く ↗
-            </a>
+            <CopyButton text={JSON.stringify(item, null, 2)} label="JSONをコピー" />
           </div>
 
           <details className="mt-2">

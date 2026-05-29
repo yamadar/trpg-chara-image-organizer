@@ -1,36 +1,73 @@
-// ディスク上に存在する生成済み画像から manifest.json / taxonomy.json を生成する。
+// ディスク上に存在する生成済み画像から data/library.json を生成する。
+// 形式は trpg-map-organizer の maps.json を参考にした:
+//   { generated_at, total, has_originals, tags:{...}, characters:[...], monsters:[...] }
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { races, genders, ages, professions, monsters, labelMap } from '../data/taxonomy'
 import { STYLE_ID } from '../data/style'
 import { characterCombos, monsterCombos } from './combos'
-import type { Manifest, ManifestCharacter, ManifestMonster } from './types'
 import {
-  IMAGES_DIR,
+  DATA_DIR,
   BASE_URL,
   IMAGE_SIZE,
+  ORIGINAL_SIZE,
   MODEL,
   MANIFEST_VERSION,
-  charFile,
-  monsterFile,
+  relFile,
+  absFile,
 } from './config'
 
-/** 画像が存在する組合せだけを拾って manifest を組み立てる。 */
-export function buildManifest(generatedAt: string): Manifest {
+interface TaxEntry {
+  key: string
+  labelJa: string
+}
+const pick = (a: { key: string; labelJa: string }): TaxEntry => ({ key: a.key, labelJa: a.labelJa })
+
+interface CharacterItem {
+  id: string
+  type: 'character'
+  file: string
+  original: string | null
+  race: string
+  raceLabel: string
+  gender: string
+  genderLabel: string
+  age: string
+  ageLabel: string
+  profession: string
+  professionLabel: string
+  tags: string[]
+  has_original: boolean
+}
+interface MonsterItem {
+  id: string
+  type: 'monster'
+  file: string
+  original: string | null
+  monster: string
+  monsterLabel: string
+  variant: number
+  tags: string[]
+  has_original: boolean
+}
+
+export function buildLibrary(generatedAt: string) {
   const raceL = labelMap(races)
   const genderL = labelMap(genders)
   const ageL = labelMap(ages)
   const profL = labelMap(professions)
   const monL = labelMap(monsters)
 
-  const characters: ManifestCharacter[] = []
+  const characterItems: CharacterItem[] = []
   for (const c of characterCombos()) {
-    const rel = charFile(c.id)
-    if (!existsSync(path.join(IMAGES_DIR, rel))) continue
-    characters.push({
+    if (!existsSync(absFile('512', 'characters', c.id))) continue
+    const hasOriginal = existsSync(absFile('original', 'characters', c.id))
+    characterItems.push({
       id: c.id,
       type: 'character',
+      file: relFile('512', 'characters', c.id),
+      original: hasOriginal ? relFile('original', 'characters', c.id) : null,
       race: c.race,
       raceLabel: raceL[c.race],
       gender: c.gender,
@@ -40,65 +77,57 @@ export function buildManifest(generatedAt: string): Manifest {
       profession: c.profession,
       professionLabel: profL[c.profession],
       tags: [c.race, c.gender, c.age, c.profession],
-      file: rel,
-      url: BASE_URL + rel,
-      width: IMAGE_SIZE,
-      height: IMAGE_SIZE,
+      has_original: hasOriginal,
     })
   }
 
-  const monsterEntries: ManifestMonster[] = []
+  const monsterItems: MonsterItem[] = []
   for (const m of monsterCombos()) {
-    const rel = monsterFile(m.id)
-    if (!existsSync(path.join(IMAGES_DIR, rel))) continue
-    monsterEntries.push({
+    if (!existsSync(absFile('512', 'monsters', m.id))) continue
+    const hasOriginal = existsSync(absFile('original', 'monsters', m.id))
+    monsterItems.push({
       id: m.id,
       type: 'monster',
+      file: relFile('512', 'monsters', m.id),
+      original: hasOriginal ? relFile('original', 'monsters', m.id) : null,
       monster: m.monster,
       monsterLabel: monL[m.monster],
       variant: m.variant,
-      tags: [m.monster, 'monster'],
-      file: rel,
-      url: BASE_URL + rel,
-      width: IMAGE_SIZE,
-      height: IMAGE_SIZE,
+      tags: [m.monster],
+      has_original: hasOriginal,
     })
   }
 
+  const all = [...characterItems, ...monsterItems]
+  const total = all.length
+
   return {
+    generated_at: generatedAt,
     version: MANIFEST_VERSION,
-    generatedAt,
     style: STYLE_ID,
-    imageSize: IMAGE_SIZE,
-    baseUrl: BASE_URL,
+    total,
+    counts: { characters: characterItems.length, monsters: monsterItems.length },
+    image_size: IMAGE_SIZE,
+    original_size: ORIGINAL_SIZE,
+    has_originals: total > 0 && all.every((x) => x.has_original),
     model: MODEL,
-    characters,
-    monsters: monsterEntries,
+    base_url: BASE_URL,
+    // フィルタ用タクソノミー（maps.json の tags 相当）
+    tags: {
+      race: races.map(pick),
+      gender: genders.map(pick),
+      age: ages.map(pick),
+      profession: professions.map(pick),
+      monster: monsters.map(pick),
+    },
+    characters: characterItems,
+    monsters: monsterItems,
   }
 }
 
-/** SPAのフィルタ構築や他サイト向けの属性辞書。 */
-function buildTaxonomyJson() {
-  const pick = (a: { key: string; labelJa: string }) => ({ key: a.key, labelJa: a.labelJa })
-  return {
-    races: races.map(pick),
-    genders: genders.map(pick),
-    ages: ages.map(pick),
-    professions: professions.map(pick),
-    monsters: monsters.map(pick),
-  }
-}
-
-export async function writeManifest(generatedAt: string): Promise<Manifest> {
-  await mkdir(IMAGES_DIR, { recursive: true })
-  const manifest = buildManifest(generatedAt)
-  await writeFile(
-    path.join(IMAGES_DIR, 'manifest.json'),
-    JSON.stringify(manifest, null, 2) + '\n',
-  )
-  await writeFile(
-    path.join(IMAGES_DIR, 'taxonomy.json'),
-    JSON.stringify(buildTaxonomyJson(), null, 2) + '\n',
-  )
-  return manifest
+export async function writeManifest(generatedAt: string) {
+  await mkdir(DATA_DIR, { recursive: true })
+  const lib = buildLibrary(generatedAt)
+  await writeFile(path.join(DATA_DIR, 'library.json'), JSON.stringify(lib, null, 2) + '\n')
+  return lib
 }

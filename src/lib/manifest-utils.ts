@@ -1,86 +1,58 @@
-import type { Item, Manifest, TaxonomyEntry } from '../types'
+import type { CharacterItem, Item, Library, MonsterItem } from '../types'
 
-export interface FilterOptions {
-  races: TaxonomyEntry[]
-  genders: TaxonomyEntry[]
-  ages: TaxonomyEntry[]
-  professions: TaxonomyEntry[]
-  monsters: TaxonomyEntry[]
+const base = import.meta.env.BASE_URL
+
+export type Mode = 'characters' | 'monsters'
+export type CharCategory = 'race' | 'gender' | 'age' | 'profession'
+
+export interface Selection {
+  race: Set<string>
+  gender: Set<string>
+  age: Set<string>
+  profession: Set<string>
+  monster: Set<string>
 }
 
-/** manifest 内に実在する値だけからフィルタ選択肢を作る（順序は出現順＝分類定義順）。 */
-export function deriveOptions(manifest: Manifest): FilterOptions {
-  const uniq = (pairs: Array<[string, string]>): TaxonomyEntry[] => {
-    const m = new Map<string, string>()
-    for (const [key, labelJa] of pairs) if (!m.has(key)) m.set(key, labelJa)
-    return Array.from(m, ([key, labelJa]) => ({ key, labelJa }))
-  }
-  const chars = manifest.characters
+export function emptySelection(): Selection {
   return {
-    races: uniq(chars.map((c) => [c.race, c.raceLabel])),
-    genders: uniq(chars.map((c) => [c.gender, c.genderLabel])),
-    ages: uniq(chars.map((c) => [c.age, c.ageLabel])),
-    professions: uniq(chars.map((c) => [c.profession, c.professionLabel])),
-    monsters: uniq(manifest.monsters.map((m) => [m.monster, m.monsterLabel])),
+    race: new Set(),
+    gender: new Set(),
+    age: new Set(),
+    profession: new Set(),
+    monster: new Set(),
   }
 }
 
-export interface FilterState {
-  types: Set<string>
-  races: Set<string>
-  genders: Set<string>
-  ages: Set<string>
-  professions: Set<string>
-  monsters: Set<string>
-  query: string
-}
-
-export function emptyFilter(): FilterState {
-  return {
-    types: new Set(),
-    races: new Set(),
-    genders: new Set(),
-    ages: new Set(),
-    professions: new Set(),
-    monsters: new Set(),
-    query: '',
-  }
-}
-
-export function matchesFilter(item: Item, f: FilterState): boolean {
-  if (f.types.size && !f.types.has(item.type)) return false
-
-  if (f.query.trim()) {
-    const q = f.query.trim().toLowerCase()
-    const hay = (
-      item.type === 'character'
-        ? [item.id, item.raceLabel, item.genderLabel, item.ageLabel, item.professionLabel, ...item.tags]
-        : [item.id, item.monsterLabel, ...item.tags]
-    )
-      .join(' ')
-      .toLowerCase()
-    if (!hay.includes(q)) return false
-  }
-
-  const charActive =
-    f.races.size > 0 || f.genders.size > 0 || f.ages.size > 0 || f.professions.size > 0
-
-  if (item.type === 'character') {
-    if (f.monsters.size) return false // モンスター種別が選択中ならキャラは隠す
-    if (f.races.size && !f.races.has(item.race)) return false
-    if (f.genders.size && !f.genders.has(item.gender)) return false
-    if (f.ages.size && !f.ages.has(item.age)) return false
-    if (f.professions.size && !f.professions.has(item.profession)) return false
-  } else {
-    if (charActive) return false // キャラ属性が選択中ならモンスターは隠す
-    if (f.monsters.size && !f.monsters.has(item.monster)) return false
-  }
-  return true
-}
-
-/** SPA自身が表示に使う画像パス（自オリジン・dev/prod両対応）。 */
+/** SPA自身が表示に使う 512px 画像パス（自オリジン・dev/prod両対応）。 */
 export function imageSrc(item: Item): string {
-  return `${import.meta.env.BASE_URL}images/${item.file}`
+  return `${base}${item.file}`
+}
+/** 原寸画像のローカルパス（無ければ null）。 */
+export function originalSrc(item: Item): string | null {
+  return item.original ? `${base}${item.original}` : null
+}
+/** 他サイト共有用の絶対URL（manifest.base_url 起点）。 */
+export function absoluteUrl(lib: Library, relPath: string): string {
+  return lib.base_url + relPath
+}
+
+function matchesQuery(haystack: string[], query: string): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return haystack.join(' ').toLowerCase().includes(q)
+}
+
+export function matchesCharacter(c: CharacterItem, sel: Selection, query: string): boolean {
+  if (sel.race.size && !sel.race.has(c.race)) return false
+  if (sel.gender.size && !sel.gender.has(c.gender)) return false
+  if (sel.age.size && !sel.age.has(c.age)) return false
+  if (sel.profession.size && !sel.profession.has(c.profession)) return false
+  return matchesQuery([c.id, c.raceLabel, c.genderLabel, c.ageLabel, c.professionLabel, ...c.tags], query)
+}
+
+export function matchesMonster(m: MonsterItem, sel: Selection, query: string): boolean {
+  if (sel.monster.size && !sel.monster.has(m.monster)) return false
+  return matchesQuery([m.id, m.monsterLabel, ...m.tags], query)
 }
 
 export function primaryLabel(item: Item): string {

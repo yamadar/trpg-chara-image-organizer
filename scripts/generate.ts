@@ -8,14 +8,13 @@
 //     --monsters        モンスターのみ
 //     --limit N         先頭 N 件だけ
 //     --force           既存画像があっても再生成
-//     --manifest-only   既存画像から manifest.json/taxonomy.json のみ再生成
-//     --save-raw        生(1024)画像を .cache/raw にも保存
+//     --manifest-only   既存画像から data/library.json のみ再生成
+//
+// 各組合せにつき API を1回呼び、原寸(1024)と512の2サイズを別ディレクトリに保存する。
 import 'dotenv/config'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import path from 'node:path'
 import pLimit from 'p-limit'
-import { finishImage } from './image'
 import {
   characterCombos,
   monsterCombos,
@@ -24,15 +23,15 @@ import {
 } from './combos'
 import { buildPrompt } from './prompt'
 import { generateImage, hasStyleAnchor } from './gemini'
+import { finishImage } from './image'
 import { writeManifest } from './manifest'
 import {
-  CHAR_DIR,
-  MONSTER_DIR,
-  RAW_DIR,
-  IMAGES_DIR,
   COST_PER_IMAGE,
-  charFile,
-  monsterFile,
+  IMAGE_SIZE,
+  ORIGINAL_SIZE,
+  absFile,
+  absSizeTypeDir,
+  type EntityType,
 } from './config'
 import type { Combo } from './types'
 
@@ -44,7 +43,6 @@ interface Args {
   monsters: boolean
   force: boolean
   manifestOnly: boolean
-  saveRaw: boolean
   limit: number | null
 }
 
@@ -60,7 +58,6 @@ function parseArgs(argv: string[]): Args {
     monsters: has('--monsters'),
     force: has('--force'),
     manifestOnly: has('--manifest-only'),
-    saveRaw: has('--save-raw'),
     limit: limit && Number.isFinite(limit) ? limit : null,
   }
 }
@@ -80,8 +77,12 @@ function selectCombos(args: Args): Combo[] {
   return combos
 }
 
-function outPath(c: Combo): string {
-  return path.join(IMAGES_DIR, c.type === 'character' ? charFile(c.id) : monsterFile(c.id))
+function typeOf(c: Combo): EntityType {
+  return c.type === 'character' ? 'characters' : 'monsters'
+}
+/** スキップ判定の基準（512が存在すれば生成済みとみなす）。 */
+function primaryPath(c: Combo): string {
+  return absFile('512', typeOf(c), c.id)
 }
 
 async function main() {
@@ -90,7 +91,7 @@ async function main() {
 
   if (args.manifestOnly) {
     const m = await writeManifest(generatedAt)
-    console.log(`manifest.json/taxonomy.json を更新: characters=${m.characters.length}, monsters=${m.monsters.length}`)
+    console.log(`data/library.json を更新: characters=${m.counts.characters}, monsters=${m.counts.monsters}`)
     return
   }
 
@@ -108,11 +109,11 @@ async function main() {
   }
 
   const combos = selectCombos(args)
-  const pending = args.force ? combos : combos.filter((c) => !existsSync(outPath(c)))
+  const pending = args.force ? combos : combos.filter((c) => !existsSync(primaryPath(c)))
   const skipped = combos.length - pending.length
 
-  console.log(`対象: ${combos.length} 枚（生成予定 ${pending.length} / 既存スキップ ${skipped}）`)
-  console.log(`概算費用: $${(pending.length * COST_PER_IMAGE).toFixed(2)}  ($${COST_PER_IMAGE}/枚)`)
+  console.log(`対象: ${combos.length} 組合せ（生成予定 ${pending.length} / 既存スキップ ${skipped}）`)
+  console.log(`概算費用: $${(pending.length * COST_PER_IMAGE).toFixed(2)}  ($${COST_PER_IMAGE}/組合せ・原寸と512を同時出力)`)
   console.log(`スタイルアンカー: ${hasStyleAnchor() ? 'あり（参照画像として同梱）' : 'なし（プロンプトのみで統一）'}`)
 
   if (args.dryRun) {
@@ -134,9 +135,11 @@ async function main() {
     return
   }
 
-  await mkdir(CHAR_DIR, { recursive: true })
-  await mkdir(MONSTER_DIR, { recursive: true })
-  if (args.saveRaw) await mkdir(RAW_DIR, { recursive: true })
+  // 出力ディレクトリ（サイズ × 種別）を用意
+  for (const type of ['characters', 'monsters'] as EntityType[]) {
+    await mkdir(absSizeTypeDir('original', type), { recursive: true })
+    await mkdir(absSizeTypeDir('512', type), { recursive: true })
+  }
 
   const limit = pLimit(4)
   let done = 0
@@ -147,10 +150,12 @@ async function main() {
     pending.map((combo) =>
       limit(async () => {
         const prompt = buildPrompt(combo)
+        const type = typeOf(combo)
         try {
           const raw = await generateImage(prompt)
-          await finishImage(raw).toFile(outPath(combo))
-          if (args.saveRaw) await writeFile(path.join(RAW_DIR, `${combo.id}.png`), raw)
+          // 原寸(1024, 高品質)と 512 を別ディレクトリに保存
+          await finishImage(raw, ORIGINAL_SIZE, 92).toFile(absFile('original', type, combo.id))
+          await finishImage(raw, IMAGE_SIZE, 90).toFile(absFile('512', type, combo.id))
           done++
           console.log(`[${done + failed}/${pending.length}] ✓ ${combo.id}`)
         } catch (err) {
@@ -170,7 +175,7 @@ async function main() {
   }
 
   const m = await writeManifest(generatedAt)
-  console.log(`manifest.json: characters=${m.characters.length}, monsters=${m.monsters.length}`)
+  console.log(`data/library.json: characters=${m.counts.characters}, monsters=${m.counts.monsters}, total=${m.total}`)
   console.log(`実費概算: $${(done * COST_PER_IMAGE).toFixed(2)}`)
 }
 

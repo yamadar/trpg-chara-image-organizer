@@ -1,29 +1,15 @@
-import type { FilterOptions, FilterState } from '../lib/manifest-utils'
-import type { TaxonomyEntry } from '../types'
-
-export type FilterCategory = 'types' | 'races' | 'genders' | 'ages' | 'professions' | 'monsters'
-
-const TYPE_ENTRIES: TaxonomyEntry[] = [
-  { key: 'character', labelJa: 'キャラクター' },
-  { key: 'monster', labelJa: 'モンスター' },
-]
+import type { Library, TaxEntry } from '../types'
+import type { Mode, Selection } from '../lib/manifest-utils'
 
 interface Props {
-  options: FilterOptions
-  filter: FilterState
-  onToggle: (category: FilterCategory, key: string) => void
+  mode: Mode
+  tags: Library['tags']
+  selection: Selection
+  onToggle: (category: keyof Selection, key: string) => void
   onClearAll: () => void
 }
 
-function Chip({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean
-  label: string
-  onClick: () => void
-}) {
+function Chip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -49,8 +35,8 @@ function Group({
   onToggle,
 }: {
   title: string
-  category: FilterCategory
-  entries: TaxonomyEntry[]
+  category: keyof Selection
+  entries: TaxEntry[]
   selected: Set<string>
   onToggle: Props['onToggle']
 }) {
@@ -72,36 +58,31 @@ function Group({
   )
 }
 
-export default function FilterPanel({ options, filter, onToggle, onClearAll }: Props) {
-  const anyActive =
-    filter.types.size +
-      filter.races.size +
-      filter.genders.size +
-      filter.ages.size +
-      filter.professions.size +
-      filter.monsters.size >
-    0
+export default function FilterPanel({ mode, tags, selection, onToggle, onClearAll }: Props) {
+  const cats: (keyof Selection)[] = ['race', 'gender', 'age', 'profession', 'monster']
+  const anyActive = cats.some((k) => selection[k].size > 0)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-200">絞り込み</h2>
         {anyActive && (
-          <button
-            type="button"
-            onClick={onClearAll}
-            className="text-xs text-indigo-400 hover:text-indigo-300"
-          >
+          <button type="button" onClick={onClearAll} className="text-xs text-indigo-400 hover:text-indigo-300">
             すべて解除
           </button>
         )}
       </div>
-      <Group title="種別" category="types" entries={TYPE_ENTRIES} selected={filter.types} onToggle={onToggle} />
-      <Group title="種族" category="races" entries={options.races} selected={filter.races} onToggle={onToggle} />
-      <Group title="性別" category="genders" entries={options.genders} selected={filter.genders} onToggle={onToggle} />
-      <Group title="年齢" category="ages" entries={options.ages} selected={filter.ages} onToggle={onToggle} />
-      <Group title="職業" category="professions" entries={options.professions} selected={filter.professions} onToggle={onToggle} />
-      <Group title="モンスター" category="monsters" entries={options.monsters} selected={filter.monsters} onToggle={onToggle} />
+
+      {mode === 'characters' ? (
+        <>
+          <Group title="種族" category="race" entries={tags.race} selected={selection.race} onToggle={onToggle} />
+          <Group title="性別" category="gender" entries={tags.gender} selected={selection.gender} onToggle={onToggle} />
+          <Group title="年齢" category="age" entries={tags.age} selected={selection.age} onToggle={onToggle} />
+          <Group title="職業" category="profession" entries={tags.profession} selected={selection.profession} onToggle={onToggle} />
+        </>
+      ) : (
+        <Group title="モンスター" category="monster" entries={tags.monster} selected={selection.monster} onToggle={onToggle} />
+      )}
     </div>
   )
 }
