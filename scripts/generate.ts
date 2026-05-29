@@ -14,8 +14,8 @@ import 'dotenv/config'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import sharp from 'sharp'
 import pLimit from 'p-limit'
+import { finishImage } from './image'
 import {
   characterCombos,
   monsterCombos,
@@ -30,7 +30,6 @@ import {
   MONSTER_DIR,
   RAW_DIR,
   IMAGES_DIR,
-  IMAGE_SIZE,
   COST_PER_IMAGE,
   charFile,
   monsterFile,
@@ -150,10 +149,7 @@ async function main() {
         const prompt = buildPrompt(combo)
         try {
           const raw = await generateImage(prompt)
-          await sharp(raw)
-            .resize(IMAGE_SIZE, IMAGE_SIZE, { fit: 'cover', position: 'centre' })
-            .webp({ quality: 88 })
-            .toFile(outPath(combo))
+          await finishImage(raw).toFile(outPath(combo))
           if (args.saveRaw) await writeFile(path.join(RAW_DIR, `${combo.id}.png`), raw)
           done++
           console.log(`[${done + failed}/${pending.length}] ✓ ${combo.id}`)

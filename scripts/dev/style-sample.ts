@@ -6,10 +6,10 @@ import 'dotenv/config'
 import { mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import sharp from 'sharp'
 import { buildPrompt } from '../prompt'
 import { generateImage } from '../gemini'
-import { ROOT, IMAGE_SIZE } from '../config'
+import { finishImage } from '../image'
+import { ROOT } from '../config'
 import type { Combo } from '../types'
 
 const OUT = path.join(ROOT, 'public', 'style-tests')
@@ -40,10 +40,7 @@ async function main() {
     console.log(`生成: ${t.name}`)
     console.log(`  prompt: ${prompt}`)
     const raw = await generateImage(prompt, { useAnchor: false })
-    await sharp(raw)
-      .resize(IMAGE_SIZE, IMAGE_SIZE, { fit: 'cover', position: 'centre' })
-      .webp({ quality: 90 })
-      .toFile(out)
+    await finishImage(raw).toFile(out)
     console.log(`  ✓ ${out}\n`)
   }
   console.log('完了')
