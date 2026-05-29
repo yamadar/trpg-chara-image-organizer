@@ -95,6 +95,19 @@ async function main() {
     return
   }
 
+  // 安全策: スコープ未指定での暗黙の全件生成を禁止（誤実行・課金事故の防止）。
+  const hasScope = args.pilot || args.all || args.characters || args.monsters
+  if (!hasScope) {
+    console.error(
+      'スコープが未指定です。誤った全件生成を防ぐため、--pilot / --all / --characters / --monsters のいずれかを明示してください。\n' +
+        '  確認のみ : npm run gen:dry\n' +
+        '  パイロット: npm run gen:pilot\n' +
+        '  全件(課金): npm run gen:all',
+    )
+    process.exitCode = 1
+    return
+  }
+
   const combos = selectCombos(args)
   const pending = args.force ? combos : combos.filter((c) => !existsSync(outPath(c)))
   const skipped = combos.length - pending.length

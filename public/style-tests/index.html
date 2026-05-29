@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>画風比較 — TRPGキャラ画像</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.6;
+      }
+      header { padding: 24px 20px; border-bottom: 1px solid #1e293b; }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      header p { margin: 0; color: #94a3b8; font-size: 14px; }
+      main { padding: 8px 20px 60px; max-width: 1200px; margin: 0 auto; }
+      section { padding: 24px 0; border-bottom: 1px solid #1e293b; }
+      h2 { font-size: 18px; margin: 0 0 4px; }
+      .prompt {
+        margin: 0 0 14px; color: #93c5fd; font-size: 12.5px;
+        font-family: ui-monospace, "SF Mono", Consolas, monospace;
+        background: #111827; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px;
+      }
+      .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      @media (max-width: 720px) { .row { grid-template-columns: repeat(2, 1fr); } }
+      figure { margin: 0; background: #1e293b; border-radius: 10px; overflow: hidden; }
+      figure img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background:#0b1220; }
+      figcaption { padding: 6px 8px; font-size: 12px; color: #cbd5e1; text-align: center; }
+      .note { color:#64748b; font-size:12px; margin-top:8px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>画風比較 — 5案 × 人間 / エルフ / ドワーフ / ゴブリン</h1>
+      <p>被写体を固定し、画風プロンプトだけを変えて生成（512×512）。気に入った番号を選んでください。</p>
+    </header>
+    <main>
+      <section>
+        <h2>① フォトリアル（写真・映画調）</h2>
+        <p class="prompt">Photorealistic, like a high-end film still (DSLR 85mm), realistic skin pores &amp; material textures, volumetric lighting, shallow depth of field, ultra sharp 8k detail.</p>
+        <div class="row">
+          <figure><img src="./1-photoreal__human.webp" alt="人間" loading="lazy" /><figcaption>人間</figcaption></figure>
+          <figure><img src="./1-photoreal__elf.webp" alt="エルフ" loading="lazy" /><figcaption>エルフ</figcaption></figure>
+          <figure><img src="./1-photoreal__dwarf.webp" alt="ドワーフ" loading="lazy" /><figcaption>ドワーフ</figcaption></figure>
+          <figure><img src="./1-photoreal__goblin.webp" alt="ゴブリン" loading="lazy" /><figcaption>ゴブリン</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>② 高精細デジタル概念画（ArtStation系）</h2>
+        <p class="prompt">Highly detailed digital painting, premium fantasy concept art (ArtStation), intricate rendering of armor/fabric/skin, dramatic rim lighting, painterly yet near-photorealistic.</p>
+        <div class="row">
+          <figure><img src="./2-concept__human.webp" alt="人間" loading="lazy" /><figcaption>人間</figcaption></figure>
+          <figure><img src="./2-concept__elf.webp" alt="エルフ" loading="lazy" /><figcaption>エルフ</figcaption></figure>
+          <figure><img src="./2-concept__dwarf.webp" alt="ドワーフ" loading="lazy" /><figcaption>ドワーフ</figcaption></figure>
+          <figure><img src="./2-concept__goblin.webp" alt="ゴブリン" loading="lazy" /><figcaption>ゴブリン</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>③ クラシック油彩（写実）</h2>
+        <p class="prompt">Richly detailed oil painting, classical realism / old master portraiture, lifelike chiaroscuro, fine visible brushwork, deep glazed colors, gallery-quality realism.</p>
+        <div class="row">
+          <figure><img src="./3-oil__human.webp" alt="人間" loading="lazy" /><figcaption>人間</figcaption></figure>
+          <figure><img src="./3-oil__elf.webp" alt="エルフ" loading="lazy" /><figcaption>エルフ</figcaption></figure>
+          <figure><img src="./3-oil__dwarf.webp" alt="ドワーフ" loading="lazy" /><figcaption>ドワーフ</figcaption></figure>
+          <figure><img src="./3-oil__goblin.webp" alt="ゴブリン" loading="lazy" /><figcaption>ゴブリン</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>④ 3D CGIレンダー（Unreal / Octane系）</h2>
+        <p class="prompt">Ultra-detailed 3D render, cinematic CGI (Unreal Engine 5 / Octane), PBR materials, subsurface scattering, ray-traced global illumination, crisp micro-detail, AAA game quality.</p>
+        <div class="row">
+          <figure><img src="./4-3d__human.webp" alt="人間" loading="lazy" /><figcaption>人間</figcaption></figure>
+          <figure><img src="./4-3d__elf.webp" alt="エルフ" loading="lazy" /><figcaption>エルフ</figcaption></figure>
+          <figure><img src="./4-3d__dwarf.webp" alt="ドワーフ" loading="lazy" /><figcaption>ドワーフ</figcaption></figure>
+          <figure><img src="./4-3d__goblin.webp" alt="ゴブリン" loading="lazy" /><figcaption>ゴブリン</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>⑤ ダーク・グリッティ写実</h2>
+        <p class="prompt">Gritty hyper-detailed dark fantasy realism, weathered grimy textures, scars/dirt, desaturated muted palette, harsh moody directional lighting, atmospheric and somber.</p>
+        <div class="row">
+          <figure><img src="./5-grimdark__human.webp" alt="人間" loading="lazy" /><figcaption>人間</figcaption></figure>
+          <figure><img src="./5-grimdark__elf.webp" alt="エルフ" loading="lazy" /><figcaption>エルフ</figcaption></figure>
+          <figure><img src="./5-grimdark__dwarf.webp" alt="ドワーフ" loading="lazy" /><figcaption>ドワーフ</figcaption></figure>
+          <figure><img src="./5-grimdark__goblin.webp" alt="ゴブリン" loading="lazy" /><figcaption>ゴブリン</figcaption></figure>
+        </div>
+        <p class="note">※ この比較ページは画風選定用の一時ページです。選定後に削除できます。</p>
+      </section>
+    </main>
+  </body>
+</html>
