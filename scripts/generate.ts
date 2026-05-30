@@ -80,9 +80,13 @@ function selectCombos(args: Args): Combo[] {
 function typeOf(c: Combo): EntityType {
   return c.type === 'character' ? 'characters' : 'monsters'
 }
-/** スキップ判定の基準（512が存在すれば生成済みとみなす）。 */
-function primaryPath(c: Combo): string {
-  return absFile('512', typeOf(c), c.id)
+/**
+ * 生成済み判定: 生成先ディレクトリに原寸(original)と512の「両方」が存在する場合のみ生成済みとみなす。
+ * どちらか一方でも欠けていれば未生成扱いとして対象に含める（部分生成・取りこぼしを自動補完）。
+ */
+function isGenerated(c: Combo): boolean {
+  const type = typeOf(c)
+  return existsSync(absFile('original', type, c.id)) && existsSync(absFile('512', type, c.id))
 }
 
 async function main() {
@@ -109,7 +113,8 @@ async function main() {
   }
 
   const combos = selectCombos(args)
-  const pending = args.force ? combos : combos.filter((c) => !existsSync(primaryPath(c)))
+  // --force 以外は「未生成（原寸/512のいずれかが欠けている）」組合せのみ対象にする。
+  const pending = args.force ? combos : combos.filter((c) => !isGenerated(c))
   const skipped = combos.length - pending.length
 
   console.log(`対象: ${combos.length} 組合せ（生成予定 ${pending.length} / 既存スキップ ${skipped}）`)
